@@ -1,39 +1,30 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const mysql = require('mysql2/promise');
+require('dotenv').config(); 
+const express = require('express'); 
+const cors = require('cors'); 
+const pool = require('./db/pool'); 
 
-const app = express();
-const PORT = process.env.PORT || 5001;
+const app = express(); 
 
-app.use(cors());
-app.use(express.json());
+const PORT = process.env.PORT || 5001; 
 
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    port: process.env.DB_PORT,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+app.use(cors()); 
+app.use(express.json()); 
 
-app.get('/api/health', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT 1 as connected');
-        res.json({ status: 'ok', database: 'connected' });
-    } catch (error) {
-        res.status(500).json({ 
-            status: 'error', 
-            database: 'disconnected',
-            message: error.message 
-        });
-    }
-});
+app.get('/api/health', async (req, res) => { 
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok', database: 'connected' });
+
+  } catch (error) {
+    res.status(500).json({ status: 'error', database: 'disconnected' });
+  }
+}); 
+
+const propertiesRouter = require('./routes/properties');
+app.use('/api/properties', propertiesRouter);
+
 
 app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-    console.log(`✅ Health check: http://localhost:${PORT}/api/health`);
-});
+  console.log(`server is running on port ${PORT}`);
+}); 
+
