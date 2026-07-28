@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { fetchProperties } from '../api/client';
 import PropertyCard from '../components/PropertyCard';
+import PropertyFilters from '../components/PropertyFilters';
 
-function ListingsPage() { 
-
+function ListingsPage() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
 
+  const [filters, setFilters] = useState({});
+  const [limit] = useState(20);
+  const [offset, setOffset] = useState(0);
+
   useEffect(() => {
     loadProperties();
-  }, []);
+  }, [filters, limit, offset]);
 
   async function loadProperties() {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchProperties({ limit: 20, offset: 0 });
+      const params = { ...filters, limit, offset };
+      const data = await fetchProperties(params);
       setProperties(data.results);
       setTotal(data.total);
     } catch (err) {
@@ -28,6 +33,15 @@ function ListingsPage() {
   }
 
 
+  const handleSearch = (newFilters) => {
+    setFilters(newFilters);
+    setOffset(0);
+  };
+
+  const handleClear = () => {
+    setFilters({});
+    setOffset(0);
+  };
 
   if (loading) {
     return (
@@ -45,11 +59,12 @@ function ListingsPage() {
     );
   }
 
-
-
   return (
     <div style={{ padding: '20px' }}>
       <h1 style={{ marginBottom: '10px' }}>Property Listings</h1>
+      
+      <PropertyFilters onSearch={handleSearch} onClear={handleClear} />
+      
       <p style={{ color: '#666', marginBottom: '20px' }}>
         Showing {properties.length} of {total} properties
       </p>
@@ -60,13 +75,19 @@ function ListingsPage() {
         justifyContent: 'center',
         gap: '10px'
       }}>
-        {properties.map((property) => (
-          <PropertyCard key={property.id} property={property} />
-        ))}
-
+        {properties.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+            No properties found matching your criteria.
+          </div>
+        ) : (
+          properties.map((property) => (
+            <PropertyCard key={property.id} property={property} />
+          ))
+        )}
       </div>
     </div>
   );
 }
+
 
 export default ListingsPage;
