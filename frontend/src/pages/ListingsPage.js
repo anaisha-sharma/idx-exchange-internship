@@ -37,12 +37,12 @@ function ListingsPage() {
 
   const handleSearch = (newFilters) => {
     setFilters(newFilters);
-    setOffset(1);
+    setCurrentPage(1);
   };
 
   const handleClear = () => {
     setFilters({});
-    setOffset(1);
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page) => {
