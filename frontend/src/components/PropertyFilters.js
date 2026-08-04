@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-function PropertyFilters({ onSearch, onClear }) {
+function PropertyFilters({ onSearch, onClear, initialFilters }) {
   const [filters, setFilters] = useState({
     city: '',
     zipcode: '',
@@ -10,12 +10,24 @@ function PropertyFilters({ onSearch, onClear }) {
     baths: ''
   });
 
+  // Sync with parent when initialFilters change
+  useEffect(() => {
+    if (initialFilters) {
+      setFilters({
+        city: initialFilters.city || '',
+        zipcode: initialFilters.zipcode || '',
+        minPrice: initialFilters.minPrice || '',
+        maxPrice: initialFilters.maxPrice || '',
+        beds: initialFilters.beds || '',
+        baths: initialFilters.baths || ''
+      });
+    }
+  }, [initialFilters]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
-
-
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -29,14 +41,15 @@ function PropertyFilters({ onSearch, onClear }) {
   };
 
   const handleClear = () => {
-    setFilters({
+    const emptyFilters = {
       city: '',
       zipcode: '',
       minPrice: '',
       maxPrice: '',
       beds: '',
       baths: ''
-    });
+    };
+    setFilters(emptyFilters);
     onClear();
   };
 
@@ -51,9 +64,7 @@ function PropertyFilters({ onSearch, onClear }) {
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
       marginBottom: '20px',
       alignItems: 'flex-end'
-
     }}>
-
       <div>
         <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#555', marginBottom: '4px' }}>City</label>
         <input
@@ -78,7 +89,6 @@ function PropertyFilters({ onSearch, onClear }) {
         />
       </div>
 
-
       <div>
         <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#555', marginBottom: '4px' }}>Min Price</label>
         <input
@@ -101,10 +111,7 @@ function PropertyFilters({ onSearch, onClear }) {
           placeholder="5000000"
           style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '4px', width: '120px' }}
         />
-
       </div>
-
-
 
       <div>
         <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#555', marginBottom: '4px' }}>Beds</label>
@@ -122,9 +129,6 @@ function PropertyFilters({ onSearch, onClear }) {
           <option value="5">5+</option>
         </select>
       </div>
-
-
-
 
       <div>
         <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#555', marginBottom: '4px' }}>Baths</label>
@@ -149,9 +153,8 @@ function PropertyFilters({ onSearch, onClear }) {
             padding: '8px 24px',
             backgroundColor: '#007bff',
             color: 'white',
-            border: 'none', 
+            border: 'none',
             borderRadius: '4px',
-
             cursor: 'pointer',
             fontWeight: 'bold'
           }}

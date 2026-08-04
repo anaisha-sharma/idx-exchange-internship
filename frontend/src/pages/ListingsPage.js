@@ -2,26 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { fetchProperties } from '../api/client';
 import PropertyCard from '../components/PropertyCard';
 import PropertyFilters from '../components/PropertyFilters';
+import Pagination from '../components/Pagination';
 
 function ListingsPage() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
-
   const [filters, setFilters] = useState({});
   const [limit] = useState(20);
-  const [offset, setOffset] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     loadProperties();
-  }, [filters, limit, offset]);
+    window.scrollTo(0, 0);
+  }, [filters, currentPage]);
 
   async function loadProperties() {
     try {
       setLoading(true);
       setError(null);
-      const params = { ...filters, limit, offset };
+      const offset = (currentPage - 1) * itemsPerPage;
+      const params = { ...filters, limit: itemsPerPage, offset };
       const data = await fetchProperties(params);
       setProperties(data.results);
       setTotal(data.total);
@@ -32,15 +35,18 @@ function ListingsPage() {
     }
   }
 
-
   const handleSearch = (newFilters) => {
     setFilters(newFilters);
-    setOffset(0);
+    setOffset(1);
   };
 
   const handleClear = () => {
     setFilters({});
-    setOffset(0);
+    setOffset(1);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   if (loading) {
@@ -63,7 +69,11 @@ function ListingsPage() {
     <div style={{ padding: '20px' }}>
       <h1 style={{ marginBottom: '10px' }}>Property Listings</h1>
       
-      <PropertyFilters onSearch={handleSearch} onClear={handleClear} />
+      <PropertyFilters 
+        onSearch={handleSearch} 
+        onClear={handleClear} 
+        initialFilters={filters}
+      />
       
       <p style={{ color: '#666', marginBottom: '20px' }}>
         Showing {properties.length} of {total} properties
@@ -85,9 +95,14 @@ function ListingsPage() {
           ))
         )}
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={Math.ceil(total / itemsPerPage)}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 }
-
 
 export default ListingsPage;
